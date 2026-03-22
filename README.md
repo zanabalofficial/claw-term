@@ -201,11 +201,181 @@ bun run lint
 bun test
 ```
 
+## Advanced Features (10 Built-in)
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | **Multi-Modal** | Image rendering (kitty/iterm/sixel), OCR, audio transcription |
+| 2 | **Agent Swarm** | Coordinator + worker agents, task distribution, consensus |
+| 3 | **Local LLM** | llama.cpp integration, model downloads, local inference |
+| 4 | **Code Analysis** | AST parsing, dependency graphs, security scanning |
+| 5 | **Git Integration** | Native git ops, blame, diff, stash, PR review |
+| 6 | **Remote Dev** | SSH connections, container management, port forwarding |
+| 7 | **Knowledge Graph** | Graph DB of code relationships, pathfinding, DOT export |
+| 8 | **Auto Testing** | Test generation, coverage analysis, Jest/Vitest/Bun |
+| 9 | **Profiling** | CPU/memory profiling, flame graphs, benchmarks |
+| 10 | **NL Shell** | Natural language → bash with safety validation |
+
+## OpenClaw Ecosystem Integration
+
+### MCP (Model Context Protocol)
+Connect to MCP servers for extended capabilities:
+
+```typescript
+import { MCPClient } from 'claw-term';
+
+const mcp = new MCPClient();
+
+// Connect to stdio server
+await mcp.connect('linear', {
+  type: 'stdio',
+  command: 'npx',
+  args: ['-y', '@linear/sdk/mcp'],
+});
+
+// Connect to HTTP server
+await mcp.connect('custom', {
+  type: 'http',
+  url: 'https://api.example.com/mcp',
+});
+
+// Use tools
+const result = await mcp.callTool('linear', 'list_issues', { limit: 10 });
+```
+
+### Skills System
+Load and execute OpenClaw/AgentSkills:
+
+```typescript
+import { SkillManager } from 'claw-term';
+
+const skills = new SkillManager('./skills');
+await skills.loadSkills();
+
+// Execute skill script
+const result = await skills.executeScript('pdf-editor', 'rotate.py', ['doc.pdf']);
+
+// Read reference
+const guide = skills.readReference('bigquery', 'schema.md');
+```
+
+### AgentWorld Bridge
+Connect to AgentWorld and ClawdChat:
+
+```typescript
+import { OpenClawBridge } from 'claw-term';
+
+const bridge = new OpenClawBridge();
+
+// Connect to AgentWorld
+bridge.connectAgentWorld({
+  apiUrl: 'https://agentworld.example.com',
+  apiKey: 'your-key',
+});
+
+// Connect to ClawdChat
+bridge.connectClawdChat({
+  relayUrl: 'wss://relay.clawd.chat',
+  did: 'did:key:z123...',
+  privateKey: '...',
+});
+
+// List agents
+const agents = await bridge.listAgents();
+
+// Send A2A message
+await bridge.sendA2A('did:key:z456...', 'Hello from ClawTerm!');
+
+// Subscribe to world events
+bridge.subscribeToWorld((msg) => {
+  console.log('World event:', msg);
+});
+```
+
+### Full Ecosystem Example
+
+```typescript
+// Complete integration example
+import { 
+  MCPClient, 
+  SkillManager, 
+  OpenClawBridge,
+  AgentSwarm,
+  KnowledgeGraph 
+} from 'claw-term';
+
+// Initialize all components
+const mcp = new MCPClient();
+const skills = new SkillManager();
+const bridge = new OpenClawBridge();
+const swarm = new AgentSwarm();
+const graph = new KnowledgeGraph();
+
+// Connect to OpenClaw services
+await Promise.all([
+  mcp.connect('github', { type: 'stdio', command: 'npx', args: ['-y', '@github/mcp'] }),
+  skills.loadSkills(),
+  bridge.connectAgentWorld({ apiUrl: process.env.AGENTWORLD_URL! }),
+]);
+
+// Register ClawTerm as an agent in AgentWorld
+await bridge.registerAsSkill({
+  name: 'claw-term',
+  description: 'Terminal AI agent with full OpenClaw tool parity',
+  version: '2.0.0',
+  tools: ['read', 'write', 'edit', 'exec', 'web_search', 'browser'],
+});
+
+// Deploy swarm to AgentWorld
+await swarm.deployToAgentWorld(bridge, {
+  coordinator: true,
+  workers: 5,
+});
+```
+
+## Configuration - OpenClaw Section
+
+```yaml
+# .clawrc.yaml
+
+# MCP Servers
+mcp:
+  servers:
+    linear:
+      type: stdio
+      command: npx
+      args: ['-y', '@linear/sdk/mcp']
+    custom:
+      type: http
+      url: https://api.example.com/mcp
+      headers:
+        Authorization: Bearer ${API_TOKEN}
+
+# Skills
+skills:
+  directory: ./skills
+  autoLoad: true
+  preloaded:
+    - pdf-editor
+    - bigquery
+
+# OpenClaw Bridge
+openclaw:
+  agentworld:
+    url: https://agentworld.example.com
+    apiKey: ${AGENTWORLD_KEY}
+  clawdchat:
+    relay: wss://relay.clawd.chat
+    did: ${DID}
+    privateKey: ${PRIVATE_KEY}
+```
+
 ## Requirements
 
 - **Runtime**: Bun ≥ 1.0.0
 - **OS**: Linux, macOS, Windows (WSL)
 - **Terminal**: Any terminal with Unicode support
+- **Optional**: llama.cpp (for local LLM), Docker (for remote dev)
 
 ## License
 

@@ -50,3 +50,11 @@ export type { ProfileResult, AsyncTrace } from './profiling';
 // Feature 10: Natural Language Shell
 export { NaturalLanguageShell } from './nl-shell';
 export type { NLCommand } from './nl-shell';
+
+// OpenClaw Ecosystem Integration
+export { MCPClient } from '../mcp';
+export { SkillManager } from '../skills';
+export { OpenClawBridge } from '../openclaw';
+export type { MCPTool, MCPConnection } from '../mcp';
+export type { Skill, SkillManifest } from '../skills';
+export type { AgentWorldConfig, ClawdChatConfig, AgentInfo } from '../openclaw';
