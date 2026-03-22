@@ -1,15 +1,18 @@
 import { useCallback, useState } from 'react';
 import { Session } from '../core/SessionManager';
 import { TOOL_REGISTRY, ToolName } from '../tools/registry';
+import { executeTool } from './executor';
 
 export function useToolExecution(session: Session) {
   const [isExecuting, setIsExecuting] = useState(false);
+  const [pendingTools, setPendingTools] = useState<string[]>([]);
 
-  const executeTool = useCallback(async (
+  const executeToolCall = useCallback(async (
     name: string,
     args: any
   ): Promise<any> => {
     setIsExecuting(true);
+    setPendingTools(prev => [...prev, name]);
     
     try {
       const tool = TOOL_REGISTRY[name as ToolName];
@@ -20,47 +23,29 @@ export function useToolExecution(session: Session) {
       // Validate input
       const validation = tool.schema.safeParse(args);
       if (!validation.success) {
-        throw new Error(`Invalid arguments: ${validation.error.message}`);
+        throw new Error(`Invalid arguments: ${validation.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
       }
 
-      // Execute based on tool type
-      // In real implementation, these would call actual implementations
-      switch (name as ToolName) {
-        case 'read':
-          // Call filesystem read
-          return `[Content of ${args.file_path || args.path}]`;
-          
-        case 'write':
-          // Call filesystem write
-          return { success: true, path: args.file_path || args.path };
-          
-        case 'edit':
-          // Call filesystem edit
-          return { success: true };
-          
-        case 'exec':
-          // Call exec
-          return { stdout: 'Command output', stderr: '', exitCode: 0 };
-          
-        case 'web_search':
-          // Call web search
-          return [{ title: 'Result 1', url: 'https://example.com', snippet: '...' }];
-          
-        case 'web_fetch':
-          // Call web fetch
-          return 'Fetched content...';
-          
-        case 'memory_search':
-          // Call memory search
-          return [{ path: 'MEMORY.md', content: '...', score: 0.95 }];
-          
-        default:
-          return { status: 'executed', tool: name };
-      }
+      // Execute via real executor
+      const result = await executeTool(name as ToolName, args);
+      
+      return result;
+      
+    } catch (error: any) {
+      return {
+        success: false,
+        error: error.message,
+      };
     } finally {
       setIsExecuting(false);
+      setPendingTools(prev => prev.filter(t => t !== name));
     }
   }, [session]);
 
-  return { executeTool, isExecuting };
+  return { 
+    executeTool: executeToolCall, 
+    isExecuting, 
+    pendingTools,
+    pendingCount: pendingTools.length 
+  };
 }
