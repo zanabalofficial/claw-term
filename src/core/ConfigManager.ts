@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { existsSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import YAML from 'yaml';

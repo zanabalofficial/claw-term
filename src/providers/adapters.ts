@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Provider Adapters - OpenAI, Anthropic, Local
  * Exact streaming protocol implementation

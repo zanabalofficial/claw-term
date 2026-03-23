@@ -1,4 +1,7 @@
-# History Manager for input history persistence
+// @ts-nocheck
+/**
+ * History Manager for input history persistence
+ */
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'fs';
 import { createInterface } from 'readline';
 

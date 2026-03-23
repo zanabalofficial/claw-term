@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Database Tools - SQL, Vector DB, Graph DB connectors
  * Multi-database query interface

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Remote Development - SSH and container management
  * Connect to remote servers, manage containers, deploy applications

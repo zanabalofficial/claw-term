@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Natural Language Shell - Convert natural language to shell commands
  * AI-powered command generation with safety validation

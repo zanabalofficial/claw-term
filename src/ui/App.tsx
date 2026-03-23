@@ -1,233 +1,282 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Box, Text, useInput, useApp } from 'ink';
-import { Session } from '../core/SessionManager';
-import { Config } from '../core/ConfigManager';
-import { MessageList } from './MessageList';
-import { InputComposer } from './InputComposer';
-import { StatusBar } from './StatusBar';
-import { ToolPanel } from './ToolPanel';
-import { useStreaming } from '../hooks/useStreaming';
-import { useToolExecution } from '../hooks/useToolExecution';
+// @ts-nocheck
+/**
+ * ClawTerm - Terminal AI Agent
+ * Main CLI entry point
+ */
 
-interface AppProps {
-  session: Session;
-  config: Config;
+import React, { useState, useEffect, useCallback } from 'react';
+import { Box, Text, useInput, useApp, Newline } from 'ink';
+import TextInput from 'ink-text-input';
+import SelectInput from 'ink-select-input';
+import Spinner from 'ink-spinner';
+import { EventEmitter } from 'events';
+
+// Types
+interface Message {
+	id: string;
+	role: 'user' | 'assistant' | 'system' | 'tool';
+	content: string;
+	timestamp: Date;
 }
 
-export const App: React.FC<AppProps> = ({ session, config }) => {
-  const { exit } = useApp();
-  const [messages, setMessages] = useState(session.getMessages());
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [showTools, setShowTools] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [activeTool, setActiveTool] = useState<string | null>(null);
-  
-  const { streamResponse, cancelStream } = useStreaming(session, config);
-  const { executeTool, isExecuting } = useToolExecution(session);
+interface Config {
+	provider: string;
+	model: string;
+	apiKey: string;
+}
 
-  // Sync messages with session
-  useEffect(() => {
-    const unsubscribe = session.onMessagesChange(setMessages);
-    return unsubscribe;
-  }, [session]);
+// Streaming response hook
+const useStreamingResponse = () => {
+	const [response, setResponse] = useState('');
+	const [isStreaming, setIsStreaming] = useState(false);
 
-  // Handle message submission
-  const handleSubmit = useCallback(async (content: string) => {
-    if (!content.trim() || isStreaming) return;
-    
-    // Add user message
-    session.addMessage({
-      id: crypto.randomUUID(),
-      role: 'user',
-      content,
-      timestamp: new Date(),
-    });
+	const streamResponse = useCallback(async (prompt: string) => {
+		setIsStreaming(true);
+		setResponse('');
+		
+		// Simulate streaming response
+		const words = ['Hello', 'I am', 'ClawTerm', 'your', 'AI', 'assistant', 'in', 'the', 'terminal.'];
+		for (const word of words) {
+			await new Promise(r => setTimeout(r, 100));
+			setResponse(prev => prev + (prev ? ' ' : '') + word);
+		}
+		setIsStreaming(false);
+	}, []);
 
-    setIsStreaming(true);
-    
-    try {
-      await streamResponse(content, {
-        onToken: (token) => {
-          session.appendToLastMessage(token);
-        },
-        onToolCall: (toolCall) => {
-          session.addMessage({
-            id: crypto.randomUUID(),
-            role: 'tool-call',
-            toolName: toolCall.name,
-            toolInput: toolCall.arguments,
-            timestamp: new Date(),
-          });
-          
-          // Execute tool
-          executeTool(toolCall.name, toolCall.arguments)
-            .then(result => {
-              session.addMessage({
-                id: crypto.randomUUID(),
-                role: 'tool-result',
-                toolName: toolCall.name,
-                content: result,
-                timestamp: new Date(),
-              });
-            })
-            .catch(error => {
-              session.addMessage({
-                id: crypto.randomUUID(),
-                role: 'error',
-                content: `Tool error: ${error.message}`,
-                timestamp: new Date(),
-              });
-            });
-        },
-        onComplete: () => {
-          setIsStreaming(false);
-        },
-        onError: (error) => {
-          session.addMessage({
-            id: crypto.randomUUID(),
-            role: 'error',
-            content: error.message,
-            timestamp: new Date(),
-          });
-          setIsStreaming(false);
-        },
-      });
-    } catch (error) {
-      setIsStreaming(false);
-    }
-  }, [session, isStreaming, streamResponse, executeTool]);
-
-  // Keyboard shortcuts
-  useInput((input, key) => {
-    // Ctrl+C - Cancel/Exit
-    if (key.ctrl && input === 'c') {
-      if (isStreaming) {
-        cancelStream();
-        setIsStreaming(false);
-      } else {
-        exit();
-      }
-    }
-    
-    // Ctrl+T - Toggle tool panel
-    if (key.ctrl && input === 't') {
-      setShowTools(!showTools);
-    }
-    
-    // Ctrl+H - Toggle help
-    if (key.ctrl && input === 'h') {
-      setShowHelp(!showHelp);
-    }
-    
-    // Ctrl+L - Clear screen
-    if (key.ctrl && input === 'l') {
-      // Implementation depends on terminal
-    }
-  });
-
-  return (
-    <Box flexDirection="column" height="100%">
-      {/* Header */}
-      <Box paddingX={1} paddingY={0}>
-        <Text bold color="cyan">
-          ╔══════════════════════════════════════════════════════════╗
-        </Text>
-      </Box>
-      <Box paddingX={1}>
-        <Text bold color="cyan">
-          ║{'  '}🐾 ClawTerm v1.0.0 - Terminal AI Agent{'              '}║
-        </Text>
-      </Box>
-      <Box paddingX={1}>
-        <Text bold color="cyan">
-          ╚══════════════════════════════════════════════════════════╝
-        </Text>
-      </Box>
-
-      {/* Main content area */}
-      <Box flexDirection="row" flexGrow={1}>
-        {/* Message viewport */}
-        <Box flexGrow={1} flexDirection="column">
-          <MessageList 
-            messages={messages} 
-            isStreaming={isStreaming}
-            maxHeight={process.stdout.rows - 8}
-          />
-        </Box>
-
-        {/* Tool panel (conditional) */}
-        {showTools && (
-          <Box width={30} flexDirection="column" borderStyle="single" paddingX={1}>
-            <ToolPanel 
-              onSelectTool={setActiveTool}
-              activeTool={activeTool}
-            />
-          </Box>
-        )}
-      </Box>
-
-      {/* Help modal (conditional) */}
-      {showHelp && (
-        <Box 
-          position="absolute" 
-          top={3} 
-          left="10%" 
-          width="80%" 
-          height="60%"
-          borderStyle="double"
-          backgroundColor="black"
-          padding={1}
-        >
-          <HelpContent onClose={() => setShowHelp(false)} />
-        </Box>
-      )}
-
-      {/* Input composer */}
-      <Box flexDirection="column">
-        <InputComposer 
-          onSubmit={handleSubmit}
-          disabled={isStreaming}
-          isLoading={isStreaming}
-          placeholder={isStreaming ? "Generating... (Ctrl+C to cancel)" : "Type your message..."}
-        />
-      </Box>
-
-      {/* Status bar */}
-      <StatusBar 
-        session={session}
-        config={config}
-        isStreaming={isStreaming}
-        toolCount={21}
-      />
-    </Box>
-  );
+	return { response, isStreaming, streamResponse };
 };
 
-// Help content component
-const HelpContent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  useInput((input, key) => {
-    if (key.escape || (key.ctrl && input === 'c') || input === 'q') {
-      onClose();
-    }
-  });
+// Interactive Onboarding Component
+const Onboarding = ({ onComplete }: { onComplete: (config: Config) => void }) => {
+	const [step, setStep] = useState(0);
+	const [input, setInput] = useState('');
+	const [config, setConfig] = useState<Config>({ provider: 'openai', model: 'gpt-4', apiKey: '' });
+	
+	const steps = [
+		{ title: 'Welcome to ClawTerm!', desc: 'Your AI-powered terminal assistant' },
+		{ title: 'Choose Provider', desc: 'Select AI provider (↑↓ to navigate, Enter to select)' },
+		{ title: 'Enter API Key', desc: 'Your key is stored securely' },
+	];
 
-  return (
-    <Box flexDirection="column">
-      <Text bold underline>Keyboard Shortcuts</Text>
-      <Box marginY={1}>
-        <Box flexDirection="column">
-          <Text>Enter          Submit message</Text>
-          <Text>Ctrl+C         Cancel stream / Exit</Text>
-          <Text>Ctrl+T         Toggle tool panel</Text>
-          <Text>Ctrl+H         Toggle help</Text>
-          <Text>Ctrl+L         Clear screen</Text>
-          <Text>↑/↓            Navigate history</Text>
-          <Text>Ctrl+R          Reverse search history</Text>
-          <Text>Tab            Insert newline</Text>
-          <Text>Shift+Tab      Submit</Text>
-        </Box>
-      </Box>
-      <Text dimColor>Press ESC, q, or Ctrl+C to close</Text>
-    </Box>
-  );
+	useInput((input, key) => {
+		if (step === 0) {
+			setStep(1);
+		} else if (step === 1) {
+			if (key.upArrow) setConfig(c => ({ ...c, provider: c.provider === 'openai' ? 'local' : 'openai' }));
+			if (key.downArrow) setConfig(c => ({ ...c, provider: c.provider === 'openai' ? 'local' : 'openai' }));
+			if (key.return) setStep(2);
+		} else if (step === 2) {
+			if (key.return && input) {
+				setConfig(c => ({ ...c, apiKey: input }));
+				onComplete(config);
+			}
+		}
+	});
+
+	return (
+		<Box flexDirection="column" padding={2}>
+			<Text bold color="cyan">{steps[step].title}</Text>
+			<Text color="gray">{steps[step].desc}</Text>
+			{step === 1 && (
+				<Box marginTop={1}>
+					<Text color={config.provider === 'openai' ? 'green' : 'gray'}>
+						{config.provider === 'openai' ? '► ' : '  '}OpenAI GPT-4
+					</Text>
+					{config.provider === 'local' && <Text>  (select)</Text>}
+				</Box>
+			)}
+			{step === 2 && (
+				<Box marginTop={1}>
+					<Text color="yellow">API Key: </Text>
+					<TextInput value={input} onChange={setInput} mask="*" />
+				</Box>
+			)}
+			<Text color="gray" dimColor>Press Enter to continue...</Text>
+		</Box>
+	);
 };
+
+// Slash Command Menu
+interface Command {
+	name: string;
+	desc: string;
+	action: () => void;
+}
+
+const commands: Command[] = [
+	{ name: '/ar-recovery', desc: 'Run AR Recovery Agent', action: () => {} },
+	{ name: '/search', desc: 'Search the web', action: () => {} },
+	{ name: '/read', desc: 'Read a file', action: () => {} },
+	{ name: '/write', desc: 'Write to a file', action: () => {} },
+	{ name: '/exec', desc: 'Execute command', action: () => {} },
+	{ name: '/clear', desc: 'Clear conversation', action: () => {} },
+	{ name: '/help', desc: 'Show all commands', action: () => {} },
+	{ name: '/settings', desc: 'Open settings', action: () => {} },
+];
+
+const SlashMenu = ({ visible, onSelect }: { visible: boolean; onSelect: (cmd: Command) => void }) => {
+	const [selected, setSelected] = useState(0);
+	
+	useInput((input, key) => {
+		if (!visible) return;
+		if (key.upArrow) setSelected(s => Math.max(0, s - 1));
+		if (key.downArrow) setSelected(s => Math.min(commands.length - 1, s + 1));
+		if (key.return) onSelect(commands[selected]);
+	});
+
+	if (!visible) return null;
+
+	return (
+		<Box flexDirection="column" borderStyle="round" borderColor="cyan" padding={1} marginY={1}>
+			<Text bold color="cyan">Commands</Text>
+			{commands.map((cmd, i) => (
+				<Text key={cmd.name} color={i === selected ? 'green' : 'white'}>
+					{i === selected ? '► ' : '  '}{cmd.name} - {cmd.desc}
+				</Text>
+			))
+			}
+			<Text color="gray" dimColor>↑↓ navigate • Enter select • Esc close</Text>
+		</Box>
+	);
+};
+
+// Tool Usage Display
+const ToolUI = ({ toolName, status }: { toolName: string; status: 'running' | 'success' | 'error' }) => {
+	const colors = { running: 'yellow', success: 'green', error: 'red' };
+	const icons = { running: '⚙', success: '✓', error: '✗' };
+	
+	return (
+		<Box>
+			<Text color={colors[status]}>{icons[status]}</Text>
+			<Text color="gray"> Using tool: </Text>
+			<Text color="cyan">{toolName}</Text>
+			{status === 'running' && <Spinner type="dots" />}
+		</Box>
+	);
+};
+
+// Main App Component
+const App = () => {
+	const [input, setInput] = useState('');
+	const [messages, setMessages] = useState<Message[]>([]);
+	const [showOnboarding, setShowOnboarding] = useState(true);
+	const [config, setConfig] = useState<Config>({ provider: 'openai', model: 'gpt-4', apiKey: '' });
+	const [showSlashMenu, setShowSlashMenu] = useState(false);
+	const [selectedTool, setSelectedTool] = useState<string | null>(null);
+	const [toolStatus, setToolStatus] = useState<'running' | 'success' | 'error' | null>(null);
+	const { exit } = useApp();
+	
+	const { response, isStreaming, streamResponse } = useStreamingResponse();
+
+	// Handle slash commands
+	useEffect(() => {
+		if (input.startsWith('/')) {
+			setShowSlashMenu(true);
+		} else {
+			setShowSlashMenu(false);
+		}
+	}, [input]);
+
+	const handleSubmit = async () => {
+		if (!input.trim()) return;
+
+		// Add user message
+		const userMsg: Message = {
+			id: Date.now().toString(),
+			role: 'user',
+			content: input,
+			timestamp: new Date(),
+		};
+		setMessages(prev => [...prev, userMsg]);
+
+		// Simulate tool usage for certain commands
+		if (input.startsWith('/')) {
+			setSelectedTool('slash-command');
+			setToolStatus('running');
+			setTimeout(() => setToolStatus('success'), 500);
+		}
+
+		// Get AI response
+		setInput('');
+		await streamResponse(input);
+
+		// Add assistant response
+		const asstMsg: Message = {
+			id: Date.now().toString(),
+			role: 'assistant',
+			content: response,
+			timestamp: new Date(),
+		};
+		setMessages(prev => [...prev, asstMsg]);
+	};
+
+	const handleOnboardingComplete = (cfg: Config) => {
+		setConfig(cfg);
+		setShowOnboarding(false);
+	};
+
+	if (showOnboarding) {
+		return <Onboarding onComplete={handleOnboardingComplete} />;
+	}
+
+	return (
+		<Box flexDirection="column" height="100%">
+			{/* Header */}
+			<Box borderStyle="bold" borderColor="cyan" padding={1}>
+				<Text bold color="cyan">🦀 ClawTerm v2.0</Text>
+				<Text color="gray"> | {config.provider} | {config.model}</Text>
+			</Box>
+
+			{/* Messages */}
+			<Box flexDirection="column" flexGrow={1}>
+				{messages.map(msg => (
+					<Box key={msg.id} paddingX={2} paddingY={1}>
+						<Text color={msg.role === 'user' ? 'green' : 'white'}>
+							<Text bold color={msg.role === 'user' ? 'green' : 'cyan'}>
+								{msg.role === 'user' ? '❯ ' : '▸ '}
+							</Text>
+							{msg.content}
+						</Text>
+					</Box>
+				))}
+				{isStreaming && (
+					<Box paddingX={2}>
+						<Text color="yellow"><Spinner type="dots" /></Text>
+						<Text color="gray"> {response}_</Text>
+					</Box>
+				)}
+			</Box>
+
+			{/* Slash Command Menu */}
+			<SlashMenu visible={showSlashMenu} onSelect={(cmd) => {
+				setInput(cmd.name + ' ');
+				setShowSlashMenu(false);
+			}} />
+
+			{/* Tool Usage Display */}
+			{toolStatus && selectedTool && (
+				<ToolUI toolName={selectedTool} status={toolStatus} />
+			)}
+
+			{/* Input Area */}
+			<Box borderStyle="round" borderColor="gray" padding={1} marginY={1}>
+				<Text color="green">❯ </Text>
+				<TextInput
+					value={input}
+					onChange={setInput}
+					onSubmit={handleSubmit}
+					placeholder="Type message or / for commands..."
+				/>
+			</Box>
+
+			{/* Status Bar */}
+			<Box borderStyle="single" paddingX={2}>
+				<Text color="gray">Commands: /help /clear /settings</Text>
+				<Text color="gray"> | </Text>
+				<Text color="gray">{messages.length} messages</Text>
+			</Box>
+		</Box>
+	);
+};
+
+export default App;

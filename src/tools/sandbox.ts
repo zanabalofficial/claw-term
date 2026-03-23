@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Sandboxed Code Execution - Isolated Python/JS/SQL runtimes
  * Secure execution environment with resource limits

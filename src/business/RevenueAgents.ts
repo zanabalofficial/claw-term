@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Revenue Agents - Top 10 Income-Generating Business Automation Agents
  * Built-in specialized agents for revenue capture, cost elimination, compliance

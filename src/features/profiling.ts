@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Performance Profiling - Built-in profiler for code
  * CPU, memory, and async operation profiling

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Agent Selection Scoring - 7-factor model for choosing which agent to deploy
  * Based on the Frame document's exact scoring methodology

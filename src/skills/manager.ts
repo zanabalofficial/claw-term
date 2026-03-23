@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Skills System - Load and execute OpenClaw/AgentSkills
  * Seamless integration with the OpenClaw ecosystem

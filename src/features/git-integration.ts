@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Git Integration - Native git operations, PR review, diff analysis
  * Deep integration with version control

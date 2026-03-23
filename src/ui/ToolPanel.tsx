@@ -1,67 +1,40 @@
-import React from 'react';
-import { Box, Text, useInput } from 'ink';
-import { TOOL_REGISTRY, TOOL_CATEGORIES, ToolName } from '../tools/registry';
+/**
+ * Tool Panel - Shows available tools
+ */
 
-interface ToolPanelProps {
-  onSelectTool: (tool: string | null) => void;
-  activeTool: string | null;
+import React from 'react';
+import { Box, Text } from 'ink';
+
+interface Tool {
+	name: string;
+	description: string;
+	available: boolean;
 }
 
-export const ToolPanel: React.FC<ToolPanelProps> = ({ onSelectTool, activeTool }) => {
-  const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
-  const [selectedTool, setSelectedTool] = React.useState<number>(0);
-  
-  const categories = Object.entries(TOOL_CATEGORIES);
-  
-  useInput((input, key) => {
-    if (key.upArrow) {
-      setSelectedTool(Math.max(0, selectedTool - 1));
-    }
-    if (key.downArrow) {
-      const tools = selectedCategory ? TOOL_CATEGORIES[selectedCategory as keyof typeof TOOL_CATEGORIES] : [];
-      setSelectedTool(Math.min(tools.length - 1, selectedTool + 1));
-    }
-    if (key.return) {
-      if (selectedCategory) {
-        const tools = TOOL_CATEGORIES[selectedCategory as keyof typeof TOOL_CATEGORIES];
-        onSelectTool(tools[selectedTool]);
-      }
-    }
-    if (key.escape) {
-      onSelectTool(null);
-    }
-  });
+interface Props {
+	tools?: Tool[];
+}
 
-  return (
-    <Box flexDirection="column">
-      <Text bold underline>Tools</Text>
-      <Box marginY={1} flexDirection="column">
-        {categories.map(([category, tools]) => (
-          <Box key={category} flexDirection="column" marginY={1}>
-            <Text bold color="cyan">
-              {category.charAt(0).toUpperCase() + category.slice(1)}
-            </Text>
-            {tools.map((toolName, i) => {
-              const tool = TOOL_REGISTRY[toolName as ToolName];
-              const isSelected = selectedCategory === category && selectedTool === i;
-              return (
-                <Box key={toolName} marginLeft={1}>
-                  <Text color={isSelected ? 'yellow' : 'white'}>
-                    {isSelected ? '> ' : '  '}
-                    {toolName}
-                  </Text>
-                  {tool.availability === 'conditional' && (
-                    <Text dimColor> *</Text>
-                  )}
-                </Box>
-              );
-            })}
-          </Box>
-        ))}
-      </Box>
-      <Box marginTop={1}>
-        <Text dimColor>* = conditional</Text>
-      </Box>
-    </Box>
-  );
+const defaultTools: Tool[] = [
+	{ name: 'read', description: 'Read file', available: true },
+	{ name: 'write', description: 'Write file', available: true },
+	{ name: 'exec', description: 'Execute command', available: true },
+	{ name: 'web_search', description: 'Web search', available: true },
+	{ name: 'browser', description: 'Control browser', available: true },
+	{ name: 'memory', description: 'Memory search', available: true },
+];
+
+export const ToolPanel: React.FC<Props> = ({ tools = defaultTools }) => {
+	return (
+		<Box flexDirection="column" borderStyle="single" borderColor="gray" padding={1}>
+			<Text bold color="cyan">Available Tools</Text>
+			{tools.map(tool => (
+				<Text key={tool.name} color={tool.available ? 'green' : 'red'}>
+					{tool.available ? '✓' : '✗'} {tool.name} - {tool.description}
+				</Text>
+			))}
+		</Box>
+	);
 };
+
+export default ToolPanel;

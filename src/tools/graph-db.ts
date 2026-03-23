@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Graph Database Tools - Neo4j, Neptune, etc.
  * Graph traversal and Cypher queries

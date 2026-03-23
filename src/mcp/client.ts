@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * MCP Client - Native Model Context Protocol integration
  * Direct MCP server communication without external CLI

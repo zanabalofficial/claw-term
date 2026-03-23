@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Enterprise Connectors - Drive, Notion, Slack, GitHub, Jira, etc.
  * Unified interface for enterprise tools

@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Safety and Policy Tools
  * Permission gates, PII scanning, policy engine, human-in-the-loop

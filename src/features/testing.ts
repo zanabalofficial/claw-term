@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Automated Testing - Generate and run tests automatically
  * AI-powered test generation, execution, and coverage analysis

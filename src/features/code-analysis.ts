@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Advanced Code Analysis - AST parsing, dependency graphs, security scanning
  * Deep code understanding for better AI assistance

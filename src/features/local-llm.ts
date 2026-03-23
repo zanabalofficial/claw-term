@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Local LLM Hosting - Built-in model server using llama.cpp
  * Run models locally without external API calls

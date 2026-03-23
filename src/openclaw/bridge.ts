@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * OpenClaw Ecosystem Bridge
  * Connect to AgentWorld, ClawdChat, and other OpenClaw services

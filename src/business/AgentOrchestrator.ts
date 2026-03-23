@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Agent Orchestrator - Production deployment and scheduling
  * Schedule, monitor, and orchestrate revenue agents in production

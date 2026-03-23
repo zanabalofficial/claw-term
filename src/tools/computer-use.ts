@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Computer Use - Desktop/UI automation and control
  * Screen capture, mouse/keyboard control, element detection

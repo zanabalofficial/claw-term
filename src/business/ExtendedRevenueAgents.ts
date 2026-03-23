@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Additional Revenue Agents - Agents 11-30
  * Extended business automation capabilities

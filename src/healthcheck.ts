@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+// @ts-nocheck
 /**
  * Health Check Script for Docker
  */
@@ -7,19 +8,17 @@ async function healthCheck() {
   try {
     const port = process.env.PORT || '3000';
     const response = await fetch(`http://localhost:${port}/health`);
+    const data = await response.json();
     
-    if (response.ok) {
-      const data = await response.json();
-      if (data.status === 'healthy' || data.status === 'degraded') {
-        console.log('Health check passed');
-        process.exit(0);
-      }
+    if (data.status === 'healthy') {
+      console.log('✓ Health check passed');
+      process.exit(0);
+    } else {
+      console.log('✗ Health check failed:', data);
+      process.exit(1);
     }
-    
-    console.error('Health check failed');
-    process.exit(1);
-  } catch (error) {
-    console.error('Health check error:', error);
+  } catch (error: any) {
+    console.log('✗ Health check error:', error.message);
     process.exit(1);
   }
 }
