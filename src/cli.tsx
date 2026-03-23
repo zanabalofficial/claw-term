@@ -12,7 +12,7 @@ import App from './ui/App.js';
 const isTTY = process.stdin.isTTY;
 
 if (!isTTY) {
-  // Non-interactive mode - show welcome message
+  // Non-interactive mode - show welcome message and exit
   console.log(`
 ╔═══════════════════════════════════════════════════╗
 ║                  ClawTerm v2.0                     ║
@@ -32,22 +32,11 @@ if (!isTTY) {
 ║                                                   ║
 ╚═══════════════════════════════════════════════════╝
   `);
-  
-  // Try to start anyway - may work in some environments
-  try {
-    const { waitUntilExit } = render(React.createElement(App));
-    waitUntilExit().then(() => {
-      console.log('ClawTerm exited');
-    }).catch(() => {
-      // Silent fail for non-TTY
-    });
-  } catch (e) {
-    // Silent fail
-  }
-} else {
-  // Interactive TTY mode
-  const { waitUntilExit } = render(React.createElement(App));
-  waitUntilExit().then(() => {
-    console.log('ClawTerm exited');
-  });
+  process.exit(0);
 }
+
+// Interactive TTY mode
+const { waitUntilExit } = render(React.createElement(App));
+waitUntilExit().then(() => {
+  console.log('ClawTerm exited');
+});
