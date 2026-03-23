@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  claw-term:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: claw-term
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - CLAW_DATA_DIR=/app/data
+      - CLAW_LOG_LEVEL=info
+      # API Keys (set in .env file)
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # Database connections
+      - DATABASE_URL=${DATABASE_URL:-sqlite:///app/data/claw.db}
+      # Business agent configurations
+      - QB_ACCESS_TOKEN=${QB_ACCESS_TOKEN}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - SLACK_TOKEN=${SLACK_TOKEN}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - claw-network
+    healthcheck:
+      test: ["CMD", "bun", "run", "dist/healthcheck.js"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching and job queues
+  redis:
+    image: redis:7-alpine
+    container_name: claw-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - claw-network
+
+  # Optional: PostgreSQL for production database
+  postgres:
+    image: postgres:16-alpine
+    container_name: claw-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=claw
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-clawpassword}
+      - POSTGRES_DB=clawterm
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - claw-network
+    ports:
+      - "5432:5432"
+
+  # Optional: Web UI dashboard
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: claw-dashboard
+    restart: unless-stopped
+    environment:
+      - CLAW_API_URL=http://claw-term:3000
+    ports:
+      - "8080:80"
+    networks:
+      - claw-network
+    depends_on:
+      - claw-term
+
+volumes:
+  redis-data:
+  postgres-data:
+
+networks:
+  claw-network:
+    driver: bridge

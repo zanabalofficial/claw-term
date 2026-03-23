@@ -60,5 +60,5 @@ export type { Skill, SkillManifest } from '../skills';
 export type { AgentWorldConfig, ClawdChatConfig, AgentInfo } from '../openclaw';
 
 // Revenue Agents - 30 Income-Generating Business Automation Agents
-export { RevenueAgents, ExtendedRevenueAgents, PricingEngine, AgentSelector } from '../business';
-export type { AgentRunResult, ExtendedAgentResult, PricingConfig, UsageMetrics, OutcomeMetrics, SelectionCriteria, AgentOpportunity, ScoringResult, ValidationCheck } from '../business';
+export { RevenueAgents, ExtendedRevenueAgents, PricingEngine, AgentSelector, AgentOrchestrator } from '../business';
+export type { AgentRunResult, ExtendedAgentResult, PricingConfig, UsageMetrics, OutcomeMetrics, SelectionCriteria, AgentOpportunity, ScoringResult, ValidationCheck, ScheduledJob, JobResult } from '../business';

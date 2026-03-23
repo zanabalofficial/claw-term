@@ -1,0 +1,49 @@
+{
+  "jobs": [
+    {
+      "agentId": "ar-recovery",
+      "name": "Daily AR Recovery",
+      "schedule": "daily",
+      "config": {
+        "accountingSystem": "quickbooks",
+        "credentials": {
+          "accessToken": "${QB_ACCESS_TOKEN}"
+        },
+        "agingThreshold": 30
+      },
+      "enabled": true
+    },
+    {
+      "agentId": "subscription-dunning",
+      "name": "Hourly Dunning",
+      "schedule": "hourly",
+      "config": {
+        "billingSystem": "stripe",
+        "failedPayments": []
+      },
+      "enabled": true
+    },
+    {
+      "agentId": "invoice-audit",
+      "name": "Monthly Invoice Audit",
+      "schedule": "monthly",
+      "config": {
+        "vendorType": "software",
+        "invoices": [],
+        "contracts": [],
+        "pos": []
+      },
+      "enabled": true
+    },
+    {
+      "agentId": "contract-obligation",
+      "name": "Weekly Contract Check",
+      "schedule": "weekly",
+      "config": {
+        "contracts": [],
+        "alertDays": 30
+      },
+      "enabled": false
+    }
+  ]
+}
