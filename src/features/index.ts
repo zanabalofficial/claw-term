@@ -58,3 +58,7 @@ export { OpenClawBridge } from '../openclaw';
 export type { MCPTool, MCPConnection } from '../mcp';
 export type { Skill, SkillManifest } from '../skills';
 export type { AgentWorldConfig, ClawdChatConfig, AgentInfo } from '../openclaw';
+
+// Revenue Agents - 30 Income-Generating Business Automation Agents
+export { RevenueAgents, ExtendedRevenueAgents } from '../business';
+export type { AgentRunResult, ExtendedAgentResult } from '../business';
